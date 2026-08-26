@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3E9D8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Die tägliche Ration Logikrätsel.">
+<meta name="apple-mobile-web-app-title" content="Strandrätsel">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Die Strandrätsel</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+/* Schriften liegen im Repo — die App lädt nichts nach und läuft offline.
+   Cormorant Garamond und Alegreya Sans stehen unter der SIL Open Font License. */
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;font-display:swap;
+  src:url('fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:700;font-display:swap;
+  src:url('fonts/cormorant-garamond-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:600;font-display:swap;
+  src:url('fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:500;font-display:swap;
+  src:url('fonts/alegreya-sans-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:700;font-display:swap;
+  src:url('fonts/alegreya-sans-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:800;font-display:swap;
+  src:url('fonts/alegreya-sans-latin-800-normal.woff2') format('woff2')}
+
+/* ============================================================
+   DIE STRANDRÄTSEL · v0.2
+   Gestaltung nach Anforderungsdokument Abschnitt 8
+   ============================================================ */
+:root{
+  --sand:#F3E9D8; --blatt:#FCF6EA; --kante:#DDC7A4; --kante-tief:#C0A67E;
+  --tinte:#241C14; --neben:#5B4C3B; --rot:#B33A2B; --abend:#A8631F;
+  --glut:#EFB463; --gras:#6E7A4C;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Alegreya Sans',-apple-system,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#E7DBC6;font-family:var(--sans);font-weight:500;font-size:18px;line-height:1.5;
+  color:var(--tinte);-webkit-font-smoothing:antialiased}
+.huelle{max-width:440px;margin:0 auto;background:var(--sand);min-height:100vh;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(120,100,70,.18);
+  padding-bottom:env(safe-area-inset-bottom)}
+@supports(padding:max(0px)){
+  .worttastatur{margin-bottom:max(0px,env(safe-area-inset-bottom))}
+}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none !important}
+
+/* ===== Szene ===== */
+.szene{display:block;width:100%;height:auto;background:#DFE7EA}
+.szene .weg-teil{transition:fill .5s ease}
+.szene .weg-teil.gegangen{fill:#F3DFB6}
+.szene .pfosten.hell .lampe{fill:var(--glut);stroke:#B4772B}
+.szene .pfosten.hell .schein{opacity:.55}
+.szene .schein{transition:opacity .5s ease}
+.szene .lampe{transition:fill .4s ease}
+.szene #laterne{transition:fill .5s ease}
+.szene.fertig #laterne{fill:#FFF0C8}
+.szene #strahl,.szene #strahl-kern,.szene #strahl-links,.szene #halo,.szene #kernlicht{
+  opacity:0;transition:opacity .8s ease}
+.szene.fertig #strahl{opacity:1}
+.szene.fertig #strahl-kern{opacity:.75}
+.szene.fertig #strahl-links{opacity:.6}
+.szene.fertig #halo{opacity:1}
+.szene.fertig #kernlicht{opacity:1}
+.szene.fertig #laterne{fill:#FFFBEA;stroke:#D9B463}
+
+/* ===== Titelei ===== */
+.titelei{padding:20px 20px 0;text-align:center}
+.werk{font-size:12px;font-weight:800;letter-spacing:.32em;text-transform:uppercase;color:var(--abend)}
+.deckname{font-family:var(--serif);font-weight:700;font-size:36px;line-height:1.05;margin-top:8px}
+.position{margin-top:8px;font-size:14px;font-weight:700;letter-spacing:.1em;color:var(--neben)}
+.position b{color:var(--abend);font-weight:800}
+
+.grasband{height:18px;margin:18px 0 20px;background-repeat:repeat-x;background-position:center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='16' viewBox='0 0 60 16'%3E%3Cg fill='none' stroke='%236E7A4C' stroke-width='1.2' opacity='0.7'%3E%3Cpath d='M6 16 Q4 8 1 3'/%3E%3Cpath d='M9 16 Q9 7 12 2'/%3E%3Cpath d='M12 16 Q14 9 19 5'/%3E%3Cpath d='M34 16 Q32 8 29 4'/%3E%3Cpath d='M38 16 Q38 8 41 3'/%3E%3Cpath d='M42 16 Q45 10 50 6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:60px 16px}
+
+.ansage{padding:0 20px}
+.anrede{font-family:var(--serif);font-weight:700;font-size:29px;line-height:1.2;margin-bottom:8px}
+.ansage p{font-size:18px;line-height:1.6}
+
+.titelzeile{display:flex;align-items:center;gap:10px;margin:0 20px 14px}
+.titelzeile h2{font-size:13px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--abend);white-space:nowrap}
+.titelzeile .linie{flex:1;height:1px;background:linear-gradient(90deg,var(--kante-tief),transparent)}
+.abschnitt{margin:26px 0 0}
+
+/* ===== Rätselblätter =====
+   Ein Blatt je Rätsel. Kopfzeile mit Zeichen und Gattung, darunter
+   der Titel über die volle Breite — so steht die Überschrift nicht
+   mehr in einer schmalen Textspalte neben dem Bild.
+   Getrennt wird mit Dünengras, nicht mit Linien. */
+.blatt-liste{margin:0 20px}
+.raetselblatt{
+  display:block;width:100%;padding:4px 2px 18px;
+  background:transparent;border:none;text-align:left;color:inherit;
+}
+.rb-kopf{display:flex;align-items:center;gap:12px;margin-bottom:11px;width:100%}
+.rb-zeichen{
+  flex:none;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--kante-tief);background:#FBF3E4;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .35s ease,border-color .35s ease;
+}
+.rb-zeichen svg{width:20px;height:20px;fill:none;stroke:var(--neben);
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .35s ease}
+.rb-art{display:block;font-size:11.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--abend)}
+.rb-lampe{margin-left:auto;flex:none;width:9px;height:9px;border-radius:50%;
+  background:var(--kante-tief);transition:background .35s ease,box-shadow .35s ease}
+
+.rb-titel{display:block;font-family:var(--serif);font-weight:700;font-size:28px;
+  line-height:1.14;color:var(--tinte)}
+.rb-satz{display:block;font-size:16px;line-height:1.5;color:var(--neben);margin-top:7px}
+.rb-fuss{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:12px;width:100%}
+.rb-stand{display:block;font-size:14.5px;font-weight:700;color:var(--neben)}
+.rb-pfeil{display:block;white-space:nowrap;font-size:15px;font-weight:800;color:var(--abend)}
+
+/* gelöst: Licht, wie bei den Laternen am Weg */
+.raetselblatt.gelöst .rb-zeichen{background:#F8EAD0;border-color:var(--abend)}
+.raetselblatt.gelöst .rb-zeichen svg{stroke:var(--abend)}
+.raetselblatt.gelöst .rb-titel{color:var(--abend)}
+.raetselblatt.gelöst .rb-lampe{background:var(--glut);box-shadow:0 0 9px rgba(239,180,99,.95)}
+.raetselblatt.gelöst .rb-stand{color:var(--abend)}
+.raetselblatt.begonnen .rb-lampe{background:#D9BE8C;box-shadow:0 0 5px rgba(217,190,140,.8)}
+
+/* Trenner: Dünengras, schmaler als das große Band oben */
+.halmband{height:14px;margin:2px 0 16px;background-repeat:repeat-x;background-position:center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='13' viewBox='0 0 48 13'%3E%3Cg fill='none' stroke='%236E7A4C' stroke-width='1' opacity='0.55'%3E%3Cpath d='M5 13 Q3 7 1 3'/%3E%3Cpath d='M8 13 Q8 6 10 2'/%3E%3Cpath d='M11 13 Q13 8 17 4'/%3E%3Cpath d='M28 13 Q26 7 24 4'/%3E%3Cpath d='M31 13 Q31 7 34 3'/%3E%3Cpath d='M35 13 Q38 9 42 5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:48px 13px}
+
+/* ===== Wegmarken (v0.2) ===== */
+.marke{display:flex;align-items:center;gap:14px;background:var(--blatt);border:1px dashed var(--kante-tief);
+  border-radius:12px;padding:15px 16px;margin:0 20px 10px;width:calc(100% - 40px);text-align:left;opacity:.75}
+.m-titel{font-size:17.5px;font-weight:700}
+.m-satz{font-size:14.5px;color:var(--neben);margin-top:2px}
+
+.fussnote{margin:30px 20px 46px;text-align:center;font-family:var(--serif);font-weight:600;
+  font-style:italic;font-size:19px;color:var(--abend)}
+.fussleiste{margin:10px 20px 34px;text-align:center;font-size:13px;color:var(--neben)}
+
+/* ===== Gitteransicht ===== */
+.kopfleiste{display:flex;align-items:center;gap:12px;padding:14px 16px 10px;border-bottom:1px solid var(--kante)}
+.zurueck{background:none;border:none;font-size:15px;font-weight:700;color:var(--neben);
+  min-height:44px;display:flex;align-items:center;gap:8px;padding:0 4px 0 0}
+.raetselkopf{padding:18px 20px 0}
+.raetselkopf h1{font-family:var(--serif);font-weight:700;font-size:30px;line-height:1.12}
+.raetselkopf p{font-size:16.5px;line-height:1.6;color:var(--neben);margin-top:8px}
+
+.gitterhuelle{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0 6px;padding:0 20px 10px}
+table.gitter{border-collapse:collapse}
+table.gitter th{font-weight:500;color:var(--tinte)}
+th.ecke{width:96px}
+th.gruppe{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--neben);padding-bottom:6px}
+th.gruppe.laengs{width:22px;padding:0 4px 0 0}
+th.gruppe.laengs span{writing-mode:vertical-rl;transform:rotate(180deg);display:block;margin:0 auto}
+th.spalte{height:88px;width:44px;vertical-align:bottom}
+th.spalte span{display:block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  padding-bottom:7px;margin:0 auto;font-size:14px}
+th.zeile{width:96px;text-align:right;padding-right:9px;white-space:nowrap;font-size:14px;
+  background:var(--sand);position:sticky;left:0;z-index:2}
+td.zelle{width:44px;height:44px;text-align:center;vertical-align:middle;border:1px solid var(--kante);
+  background:#FFFCF5;font-size:17px;font-weight:700;color:var(--tinte);cursor:pointer;user-select:none}
+td.zelle.aus{color:#8E7B62;font-weight:500}
+td.zelle.gesetzt{background:var(--abend);color:#FDF7EC;border-color:#8B4E13}
+td.leer{width:44px;height:44px;background:transparent;border:none}
+.trenner{border-left:2px solid var(--kante-tief) !important}
+tr.blockstart td,tr.blockstart th{border-top:2px solid var(--kante-tief)}
+.gitternote{font-size:13px;color:var(--neben);padding:0 20px}
+
+/* ===== Handlungsleiste am Fuß eines Rätsels =====
+   Zurückhaltend gehalten: keine Verläufe, keine Schlagschatten,
+   keine dicken Kanten. Die Hauptaktion trägt nur einen ruhigen
+   Sandton, die Nebenaktionen sind reine Schrift auf Papier. */
+.handlung{margin:24px 20px 0}
+.knopf{
+  display:block;width:100%;font-family:var(--sans);font-weight:700;font-size:16.5px;
+  letter-spacing:.02em;color:#3A2A12;
+  background:#F5E3C2;border:1px solid var(--kante-tief);border-radius:11px;
+  padding:13px 20px;min-height:50px;
+  transition:background .2s ease;
+}
+.knopf:active{background:#EDD6AE}
+.nebenaktionen{display:flex;justify-content:center;gap:26px;margin-top:14px}
+.knopf-still{
+  background:transparent;border:none;padding:10px 2px;min-height:44px;
+  font-family:var(--sans);font-weight:700;font-size:15px;color:var(--neben);
+  border-bottom:1px solid var(--kante-tief);border-radius:0;
+  transition:color .2s ease,border-color .2s ease;
+}
+.knopf-still:active{color:var(--abend);border-color:var(--abend)}
+
+.werkzeuge{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 20px 0}
+.schalter{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--neben);min-height:44px}
+.schalter input{width:20px;height:20px;accent-color:var(--abend)}
+
+.meldung{margin:16px 20px 0;padding:13px 15px;border-radius:10px;font-size:16px;font-weight:700}
+.meldung.gut{background:#F7EBD3;border:1px solid var(--kante-tief);color:#8B4E13}
+.meldung.warten{background:var(--blatt);border:1px solid var(--kante);color:var(--neben)}
+.meldung.fehler{background:#F6E3DE;border:1px solid var(--rot);color:#8A2C20}
+
+ul.hinweise{list-style:none;margin:0 20px;border-top:1px solid var(--kante)}
+ul.hinweise li{border-bottom:1px solid var(--kante)}
+ul.hinweise button{width:100%;display:flex;gap:12px;align-items:flex-start;background:none;border:none;
+  text-align:left;padding:15px 2px;min-height:52px;font-size:17px;line-height:1.45}
+.hnr{font-size:14px;font-weight:800;color:var(--abend);min-width:20px;padding-top:2px}
+.hinweis.abgehakt .htext{color:var(--neben);text-decoration:line-through;text-decoration-color:var(--kante-tief)}
+.hinweis.abgehakt .hnr{color:var(--kante-tief)}
+
+table.tabelle{border-collapse:collapse;margin:0 20px 8px;width:calc(100% - 40px)}
+table.tabelle th,table.tabelle td{border:1px solid var(--kante);padding:10px 12px;text-align:left;font-size:16px}
+table.tabelle th{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--neben)}
+
+
+.liegend{display:flex;align-items:stretch;gap:8px;margin:0 20px 8px}
+.liegend-oeffnen{flex:1;background:var(--blatt);border:1px solid var(--kante);border-radius:12px;
+  padding:13px 15px;text-align:left;min-height:56px;display:flex;flex-direction:column;gap:2px}
+.liegend.offen .liegend-oeffnen{box-shadow:0 0 0 2px var(--abend)}
+.l-datum{font-size:16.5px;font-weight:700}
+.l-was{font-size:13.5px;color:var(--neben)}
+.liegend-weg{flex:0 0 auto;background:transparent;border:1px solid var(--kante);border-radius:12px;
+  padding:0 14px;min-height:56px;font-size:14px;font-weight:700;color:var(--neben)}
+
+/* ===== Schachbrett ===== */
+.brett{display:grid;grid-template-columns:repeat(8,1fr);margin:18px 20px 0;
+  border:1px solid var(--kante-tief);border-radius:4px;overflow:hidden}
+.feld{aspect-ratio:1/1;position:relative;border:none;padding:0;display:flex;
+  align-items:center;justify-content:center;background:#EFE2C6}
+.feld.dunkel{background:#C9B18C}
+.feld .figur{font-size:26px;line-height:1;user-select:none}
+.feld .figur.weiss{color:#FFFBF2;text-shadow:0 0 1px #6B5940,0 1px 0 #6B5940,1px 0 0 #6B5940,
+  0 -1px 0 #6B5940,-1px 0 0 #6B5940}
+.feld .figur.schwarz{color:#2A2118}
+.feld .punkt{position:absolute;width:26%;height:26%;border-radius:50%;background:rgba(168,99,31,.4);
+  opacity:0;pointer-events:none}
+.feld.ziel .punkt{opacity:1}
+.feld.schlagbar .punkt{width:82%;height:82%;background:transparent;
+  box-shadow:inset 0 0 0 3px rgba(168,99,31,.55);opacity:1}
+.feld.gewaehlt{box-shadow:inset 0 0 0 3px var(--abend)}
+@media (min-width:420px){.feld .figur{font-size:30px}}
+
+.wortgitter{display:flex;flex-direction:column;gap:7px;align-items:center;margin:18px 20px 0}
+.wortzeile{display:flex;gap:7px}
+.wortfeld{width:52px;height:52px;border:2px solid var(--kante);border-radius:6px;background:#FFFCF5;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:700;font-size:28px;text-transform:uppercase;color:var(--tinte)}
+.wortfeld.gesetzt{border-color:var(--kante-tief)}
+.wortfeld.richtig{background:var(--abend);border-color:#8B4E13;color:#FDF7EC}
+.wortfeld.vorhanden{background:#DFE3C4;border-color:var(--gras);color:#33391C}
+.wortfeld.daneben{background:#E4DCCB;border-color:#C9BCA2;color:#5B4C3B}
+
+.worttastatur{margin:18px 8px 0;display:flex;flex-direction:column;gap:7px}
+.tastenreihe{display:flex;gap:5px;justify-content:center}
+.taste{flex:1 1 0;min-width:0;min-height:52px;border:1px solid var(--kante-tief);border-radius:7px;
+  background:var(--blatt);font-size:17px;font-weight:700;color:var(--tinte);padding:0}
+.taste.weit{flex:1.5 1 0;font-size:19px}
+.taste.richtig{background:var(--abend);border-color:#8B4E13;color:#FDF7EC}
+.taste.vorhanden{background:#DFE3C4;border-color:var(--gras);color:#33391C}
+.taste.daneben{background:#DCD3C2;border-color:#C3B6A0;color:#7A6C58}
+
+ol.aussagen{list-style:none;margin:18px 20px 0;padding:0}
+ol.aussagen li{font-size:17.5px;line-height:1.5;padding:10px 0 10px 2px;border-bottom:1px solid var(--kante)}
+ol.aussagen li:first-child{border-top:1px solid var(--kante)}
+
+.antwortfeld{margin:16px 20px 0}
+.zahlzeile{display:flex;align-items:center;gap:12px}
+.zahlzeile input{font:inherit;font-size:22px;font-weight:700;color:var(--tinte);background:#FFFCF5;
+  border:1px solid var(--kante-tief);border-radius:10px;padding:12px 14px;min-height:52px;width:150px}
+.zahlzeile .einheit{font-size:17px;color:var(--neben)}
+.zuordnungszeile{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:56px;border-bottom:1px solid var(--kante)}
+.zuordnungszeile:last-child{border-bottom:none}
+.zname{font-size:17px;font-weight:700}
+.zuordnungszeile select{font:inherit;font-size:16px;color:var(--tinte);background:#FFFCF5;
+  border:1px solid var(--kante-tief);border-radius:8px;padding:9px 10px;min-height:44px}
+.loesungsweg{margin:0 20px;font-size:16.5px;line-height:1.65;color:var(--tinte)}
+
+.w-frage{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--abend);margin-top:12px}
+ul.leute{list-style:none;margin:20px 20px 0}
+ul.leute li.person{margin-bottom:10px}
+ul.leute button{width:100%;text-align:left;background:var(--blatt);border:1px solid var(--kante);
+  border-radius:12px;padding:14px 16px;min-height:64px;display:flex;flex-direction:column;gap:6px}
+.p-kopf{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.p-name{font-family:var(--serif);font-weight:700;font-size:22px}
+.p-urteil{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--neben)}
+.p-satz{font-size:17px;line-height:1.45}
+li.person.ehrlich button{background:#F1EFDC;border-color:var(--gras)}
+li.person.ehrlich .p-urteil{color:#4C5A2E}
+li.person.flunkert button{background:#F7EBD3;border-color:var(--kante-tief)}
+li.person.flunkert .p-urteil{color:var(--abend)}
+
+.einstellfeld{margin:0 20px;background:var(--blatt);border:1px solid var(--kante);border-radius:12px;padding:6px 14px 12px}
+.einstellzeile{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:52px;border-bottom:1px solid var(--kante)}
+.einstellzeile:last-of-type{border-bottom:none}
+.einstellzeile span{font-size:16.5px;font-weight:700}
+.einstellzeile select{font:inherit;font-size:16px;font-weight:500;color:var(--tinte);background:#FFFCF5;
+  border:1px solid var(--kante-tief);border-radius:8px;padding:9px 10px;min-height:44px}
+.einstellnote{font-size:13px;color:var(--neben);padding-top:10px}
+
+#fehlerbalken{position:fixed;left:0;right:0;top:0;z-index:99;background:#8A2C20;color:#FDF7EC;
+  font-size:15px;font-weight:700;line-height:1.4;padding:12px 16px;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div id="fehlerbalken" hidden></div>
+<script>
+/* Frühwarnung: fehlende Skripte oder Laufzeitfehler sichtbar machen,
+   statt die Seite stumm tot liegen zu lassen. */
+window.addEventListener("error", function (e) {
+  var b = document.getElementById("fehlerbalken");
+  if (!b) return;
+  b.textContent = "Fehler: " + (e.message || "Skript konnte nicht geladen werden") +
+                  (e.filename ? "  (" + e.filename.split("/").pop() + ")" : "");
+  b.hidden = false;
+}, true);
+window.addEventListener("load", function () {
+  if (typeof window.App === "undefined") {
+    var b = document.getElementById("fehlerbalken");
+    b.textContent = "Die Skripte aus js/ wurden nicht geladen. " +
+      "Diese Datei braucht den ganzen Ordner — oder nimm die Einzeldatei-Fassung.";
+    b.hidden = false;
+  }
+});
+</script>
+<div class="huelle">
+
+<!-- ==================== ANSICHT: DER WEG ==================== -->
+<section id="ansicht-weg">
+  <svg class="szene" id="szene" viewBox="0 0 400 262" preserveAspectRatio="xMidYMid meet" aria-label="Sandweg durch die Dünen zum Leuchtturm">
+    <defs>
+      <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#9FBAC9"/><stop offset="42%" stop-color="#CBD3D2"/>
+        <stop offset="72%" stop-color="#EFD3AC"/><stop offset="100%" stop-color="#F8E4C2"/>
+      </linearGradient>
+      <linearGradient id="meer" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#43738E"/><stop offset="55%" stop-color="#5C8CA1"/><stop offset="100%" stop-color="#84AAB4"/>
+      </linearGradient>
+      <linearGradient id="duene" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#C9C08E"/><stop offset="100%" stop-color="#B5AE7C"/>
+      </linearGradient>
+      <radialGradient id="strahlfarbe"><stop offset="0%" stop-color="#FFF3D2" stop-opacity="1"/><stop offset="100%" stop-color="#FFE07A" stop-opacity="0"/></radialGradient>
+      <radialGradient id="halofarbe">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+        <stop offset="22%" stop-color="#FFF6D6" stop-opacity=".92"/>
+        <stop offset="55%" stop-color="#FFE08A" stop-opacity=".45"/>
+        <stop offset="100%" stop-color="#FFD059" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Himmel und Wolken -->
+    <rect width="400" height="152" fill="url(#himmel)"/>
+    <g fill="#F2EFE6" opacity=".72">
+      <ellipse cx="78" cy="34" rx="56" ry="15"/><ellipse cx="118" cy="28" rx="36" ry="11"/>
+      <ellipse cx="250" cy="22" rx="48" ry="12"/><ellipse cx="330" cy="46" rx="44" ry="11"/>
+      <ellipse cx="40" cy="66" rx="40" ry="9"/>
+    </g>
+    <g fill="#DCD9CE" opacity=".55">
+      <ellipse cx="150" cy="52" rx="52" ry="9"/><ellipse cx="300" cy="70" rx="46" ry="8"/>
+    </g>
+
+    <!-- Meer bis zum Horizont, links die Küste -->
+    <rect x="0" y="126" width="400" height="96" fill="url(#meer)"/>
+    <rect x="0" y="126" width="400" height="2" fill="#C6D3D6" opacity=".8"/>
+
+    <!-- ferne Landzunge am Horizont, damit das Meer nicht spitz ausläuft -->
+    <path d="M188 126 q16 -8 34 -9 q22 -1 40 4 q16 4 30 5 H188 Z" fill="#93A7B0" opacity=".75"/>
+    <path d="M262 126 q26 -4 48 -1 q30 3 56 1 H262 Z" fill="#A3B5BC" opacity=".6"/>
+
+    <!-- Wellenglanz -->
+    <g stroke="#CFE0E2" stroke-width="1.2" fill="none" opacity=".45">
+      <path d="M12 138 q10 -3 20 0 M64 144 q10 -3 20 0 M120 140 q10 -3 20 0 M28 152 q12 -3 24 0 M96 156 q12 -3 24 0 M156 148 q10 -3 20 0"/>
+    </g>
+
+    <!-- Segelschiff, weiter draußen: kleiner und näher am Horizont -->
+    <g id="segler" transform="translate(81.2,44.6) scale(0.62)">
+      <path d="M104 158 L118 158 L115.5 162 L106.5 162 Z" fill="#40474A"/>
+      <rect x="110.6" y="141" width="1.2" height="17" fill="#5A5B52"/>
+      <path d="M110.4 141 L110.4 156 L102 156 Z" fill="#FBF6EC" stroke="#C9C6B6" stroke-width=".8"/>
+      <path d="M111.8 144 L111.8 156 L118 156 Z" fill="#F2EADA" stroke="#C9C6B6" stroke-width=".8"/>
+      <path d="M100 164 q11 -2 22 0" stroke="#DCEAEA" stroke-width="1.4" fill="none" opacity=".7"/>
+    </g>
+
+    <!-- Leuchtturm auf der Düne -->
+    <g id="turm">
+      <ellipse cx="316" cy="150" rx="46" ry="12" fill="#BDB483"/>
+      <path d="M306 146 L308 94 L326 94 L328 146 Z" fill="#FBF6EC" stroke="#B9A886" stroke-width="1"/>
+      <path d="M306.6 131 L327.4 131 L327 119 L307 119 Z" fill="var(--rot)"/>
+      <path d="M307.6 106 L326.4 106 L326.1 98 L307.9 98 Z" fill="var(--rot)"/>
+      <rect x="304" y="88" width="26" height="4" rx="1.5" fill="#8E8570"/>
+
+      <!-- Leuchtfeuer: Schein und Strahlen liegen hinter der Laterne -->
+      <path id="strahl" d="M320 83 L400 34 L400 134 Z" fill="url(#strahlfarbe)"/>
+      <path id="strahl-kern" d="M320 83 L400 60 L400 108 Z" fill="#FFF8E4"/>
+      <path id="strahl-links" d="M314 83 L214 46 L214 122 Z" fill="url(#strahlfarbe)"/>
+      <circle id="halo" cx="317" cy="83" r="40" fill="url(#halofarbe)"/>
+
+      <rect id="laterne" x="309" y="77" width="16" height="12" rx="1.5" fill="#F0E6D2" stroke="#8E8570" stroke-width="1"/>
+      <circle id="kernlicht" cx="317" cy="83" r="6.5" fill="#FFFFFF"/>
+      <path d="M309 77 L317 69 L325 77 Z" fill="var(--rot)"/>
+      <rect x="316" y="64" width="2" height="6" fill="#8E8570"/>
+    </g>
+
+    <!-- Strandsaum: hier endet der Weg -->
+    <path d="M0 202 C 46 196, 98 188, 142 178 C 174 170, 202 158, 240 142
+             C 288 133, 340 131, 400 136
+             L 400 148 C 340 143, 288 145, 240 154
+             C 202 170, 174 182, 142 190 C 98 200, 46 208, 0 214 Z" fill="#EFE2C4"/>
+
+    <!-- Dünenkamm: links die Klippenkante, rechts der Rücken mit dem Turm -->
+    <path d="M0 214 C 46 208, 98 200, 142 190 C 174 182, 202 170, 240 154
+             C 288 145, 340 143, 400 148 V262 H0 Z" fill="url(#duene)"/>
+    <path d="M0 236 C 64 228, 116 216, 162 204 C 204 193, 228 180, 252 170
+             C 302 161, 352 159, 400 162 V262 H0 Z" fill="#CDC492" opacity=".85"/>
+
+    <!-- Weg: vier Abschnitte, von unten nach oben. Er endet am Strandsaum. -->
+    <g id="weg">
+      <polygon class="weg-teil" fill="#E8D5B4" data-teil="1" points="120,262 280,262 271.6,232.5 148.4,232.5"/>
+      <polygon class="weg-teil" fill="#E8D5B4" data-teil="2" points="148.4,232.5 271.6,232.5 263.7,205 175,205"/>
+      <polygon class="weg-teil" fill="#E8D5B4" data-teil="3" points="175,205 263.7,205 255.8,177.5 201.5,177.5"/>
+      <polygon class="weg-teil" fill="#E8D5B4" data-teil="4" points="201.5,177.5 255.8,177.5 247,148 227,148"/>
+    </g>
+    <!-- Klinkerstreifen in der Wegmitte -->
+    <g opacity=".5" fill="#C99C74">
+      <polygon points="170,262 230,262 233,232.5 187,232.5"/>
+      <polygon points="187,232.5 233,232.5 236.4,205 202.4,205"/>
+      <polygon points="202.4,205 236.4,205 240.7,177.5 216.7,177.5"/>
+      <polygon points="216.7,177.5 240.7,177.5 241,149 233,149"/>
+    </g>
+    <g stroke="#B08A63" stroke-width=".8" opacity=".55">
+      <path d="M180,247 H230 M196,219 H233 M211,191 H237 M223.5,168 H239.3 M232,153 H239.5"/>
+    </g>
+
+    <!-- Zaun: beidseitig neben dem Weg, Pfosten stehen im Sand, nicht auf dem Weg -->
+    <g stroke="#9A8560" stroke-width="2.4" fill="none" opacity=".95">
+      <path d="M88 278 L106 250 L137 222 L166 196 L193 172"/>
+      <path d="M318 278 L300 250 L290 222 L278 196 L267 172"/>
+    </g>
+    <g stroke="#9A8560" stroke-width="1.2" fill="none" opacity=".7">
+      <path d="M92 272 L108 246 L138 219 L167 194 L193 170"/>
+      <path d="M314 272 L298 246 L289 219 L277 194 L267 170"/>
+    </g>
+    <g id="pfosten">
+      <g class="pfosten" data-teil="1">
+        <circle class="schein" opacity="0" cx="106" cy="250" r="13" fill="var(--glut)"/>
+        <rect x="104" y="250" width="4" height="26" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="106" cy="248" r="4.4"/>
+        <circle class="schein" opacity="0" cx="300" cy="250" r="13" fill="var(--glut)"/>
+        <rect x="298" y="250" width="4" height="26" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="300" cy="248" r="4.4"/>
+      </g>
+      <g class="pfosten" data-teil="2">
+        <circle class="schein" opacity="0" cx="137" cy="222" r="11" fill="var(--glut)"/>
+        <rect x="135.3" y="222" width="3.5" height="18" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="137" cy="220" r="3.9"/>
+        <circle class="schein" opacity="0" cx="290" cy="222" r="11" fill="var(--glut)"/>
+        <rect x="288.3" y="222" width="3.5" height="18" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="290" cy="220" r="3.9"/>
+      </g>
+      <g class="pfosten" data-teil="3">
+        <circle class="schein" opacity="0" cx="166" cy="196" r="10" fill="var(--glut)"/>
+        <rect x="164.5" y="196" width="3" height="14" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="166" cy="194" r="3.4"/>
+        <circle class="schein" opacity="0" cx="278" cy="196" r="10" fill="var(--glut)"/>
+        <rect x="276.5" y="196" width="3" height="14" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="278" cy="194" r="3.4"/>
+      </g>
+      <g class="pfosten" data-teil="4">
+        <circle class="schein" opacity="0" cx="193" cy="172" r="9" fill="var(--glut)"/>
+        <rect x="191.8" y="172" width="2.6" height="11" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="193" cy="170.5" r="3"/>
+        <circle class="schein" opacity="0" cx="267" cy="172" r="9" fill="var(--glut)"/>
+        <rect x="265.8" y="172" width="2.6" height="11" fill="#8B7754"/>
+        <circle class="lampe" fill="#E4D6BC" stroke="#B49B72" stroke-width="1" cx="267" cy="170.5" r="3"/>
+      </g>
+    </g>
+
+    <!-- Strandhafer -->
+    <g stroke="var(--gras)" stroke-width="1.5" fill="none" opacity=".85">
+      <path d="M22 262 q-4 -22 -12 -32 M30 262 q0 -24 8 -34 M40 262 q7 -20 20 -28 M52 262 q2 -22 12 -30"/>
+      <path d="M74 250 q-4 -18 -10 -26 M86 246 q1 -18 9 -25"/>
+      <path d="M330 262 q-6 -22 -16 -30 M344 262 q0 -24 9 -32 M358 262 q8 -20 20 -28 M372 262 q2 -22 12 -30"/>
+      <path d="M312 244 q-5 -16 -12 -22 M322 240 q1 -16 8 -22"/>
+    </g>
+    <g stroke="#8A9463" stroke-width="1.1" fill="none" opacity=".6">
+      <path d="M96 200 q-3 -12 -8 -17 M108 194 q1 -12 6 -17 M292 200 q3 -12 8 -17 M304 194 q-1 -12 -6 -17"/>
+    </g>
+
+    <!-- Möwen -->
+    <g stroke="#4A4335" stroke-width="1.5" fill="none" opacity=".65">
+      <path d="M96 60 q7 -6 14 0 M110 60 q7 -6 14 0"/>
+      <path d="M228 40 q5 -4 10 0 M238 40 q5 -4 10 0"/>
+    </g>
+  </svg>
+
+  <header class="titelei">
+    <div class="werk">Die heutige Runde</div>
+    <div class="deckname">Die Strandrätsel</div>
+    <div class="position"><span id="datumszeile"></span></div>
+  </header>
+
+  <div class="grasband"></div>
+
+  <section class="ansage">
+    <div class="anrede">Moin.</div>
+    <p id="ansagetext"></p>
+  </section>
+
+  <div class="grasband"></div>
+
+  <section class="abschnitt">
+    <div class="titelzeile"><h2>Auf dem Weg</h2><span class="linie"></span></div>
+    <div class="blatt-liste">
+
+      <button class="raetselblatt" id="karte-zuordnung">
+        <span class="rb-kopf">
+          <span class="rb-zeichen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 10.7h16M4 15.3h16M9.3 4v16M14.7 4v16"/><path d="M6 7.2l1.2 1.2 1.6-2" stroke-width="1.7"/></svg></span>
+          <span class="rb-art">Erste Station · Zuordnung</span>
+          <span class="rb-lampe"></span>
+        </span>
+        <span class="rb-titel" id="z-kartentitel">—</span>
+        <span class="rb-satz" id="z-kartensatz"></span>
+        <span class="rb-fuss">
+          <span class="rb-stand" id="z-kartenstand">wartet noch</span>
+          <span class="rb-pfeil">Los →</span>
+        </span>
+      </button>
+
+      <div class="halmband"></div>
+
+      <button class="raetselblatt" id="karte-wahrheit">
+        <span class="rb-kopf">
+          <span class="rb-zeichen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8l-4 3z"/><path d="M18 9.5h0a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1.5l-3 2.5V17"/></svg></span>
+          <span class="rb-art">Zweite Station · Wahrheit</span>
+          <span class="rb-lampe"></span>
+        </span>
+        <span class="rb-titel" id="w-kartentitel">—</span>
+        <span class="rb-satz" id="w-kartensatz"></span>
+        <span class="rb-fuss">
+          <span class="rb-stand" id="w-kartenstand">wartet noch</span>
+          <span class="rb-pfeil">Los →</span>
+        </span>
+      </button>
+
+      <div class="halmband"></div>
+
+      <button class="raetselblatt" id="karte-wort">
+        <span class="rb-kopf">
+          <span class="rb-zeichen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8" width="5" height="5" rx="1"/><rect x="9.5" y="8" width="5" height="5" rx="1"/><rect x="15.5" y="8" width="5" height="5" rx="1"/><path d="M6 17.5h12" stroke-width="1.7"/></svg></span>
+          <span class="rb-art">Dritte Station · Wort</span>
+          <span class="rb-lampe"></span>
+        </span>
+        <span class="rb-titel" id="wort-kartentitel">Fünf Buchstaben</span>
+        <span class="rb-satz" id="wort-kartensatz">Mehr braucht es heute nicht. Sechs Versuche, dann steht es.</span>
+        <span class="rb-fuss">
+          <span class="rb-stand" id="wort-kartenstand">wartet noch</span>
+          <span class="rb-pfeil">Los →</span>
+        </span>
+      </button>
+
+      <div class="halmband"></div>
+
+      <button class="raetselblatt" id="karte-schach">
+        <span class="rb-kopf">
+          <span class="rb-zeichen"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 20.5h6M9.8 20.5c0-2.2 1.2-3.4 1.6-5H9l.6-2.2H8.4l2-2.6H9.2l1.6-2.1"/>
+            <path d="M14.2 20.5c0-2.2-1.2-3.4-1.6-5H15l-.6-2.2h1.2l-2-2.6h1.2l-1.6-2.1"/>
+            <path d="M10.8 8.6a1.6 1.6 0 1 1 2.4 0"/>
+          </svg></span>
+          <span class="rb-art">Fünfte Station · Stellung</span>
+          <span class="rb-lampe"></span>
+        </span>
+        <span class="rb-titel" id="s-kartentitel">Die Stellung des Tages</span>
+        <span class="rb-satz" id="s-kartensatz">Ein Brett, ein Zug. Der Rest ist Ruhe.</span>
+        <span class="rb-fuss">
+          <span class="rb-stand" id="s-kartenstand">wartet noch</span>
+          <span class="rb-pfeil">Los →</span>
+        </span>
+      </button>
+
+      <div class="halmband"></div>
+
+      <button class="raetselblatt" id="karte-aufgabe">
+        <span class="rb-kopf">
+          <span class="rb-zeichen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l4 4v13H6z"/><path d="M15 3.5v4h4"/><path d="M9 12h6M9 15.5h4"/></svg></span>
+          <span class="rb-art">Vierte Station · Denksport</span>
+          <span class="rb-lampe"></span>
+        </span>
+        <span class="rb-titel" id="a-kartentitel">—</span>
+        <span class="rb-satz" id="a-kartensatz"></span>
+        <span class="rb-fuss">
+          <span class="rb-stand" id="a-kartenstand">wartet noch</span>
+          <span class="rb-pfeil">Los →</span>
+        </span>
+      </button>
+
+    </div>
+  </section>
+
+  <section class="abschnitt" id="abschnitt-liegend" hidden>
+    <div class="titelzeile"><h2>Am Wegesrand</h2><span class="linie"></span></div>
+    <div id="liegendes"></div>
+    <p class="einstellnote" style="padding:10px 20px 0">Angefangenes wartet, so lange du magst. Nichts läuft ab.</p>
+  </section>
+
+  <section class="abschnitt">
+    <div class="titelzeile"><h2>Der Zuschnitt</h2><span class="linie"></span></div>
+    <div class="einstellfeld">
+      <label class="einstellzeile"><span>Wie lang soll die Runde werden?</span><select id="wahl-zuschnitt"></select></label>
+      <label class="einstellzeile"><span>Wie viel Gegenwind darf es sein?</span><select id="wahl-stufe"></select></label>
+      <label class="einstellzeile"><span>Wie viele Köpfe denken mit?</span><select id="wahl-personen"></select></label>
+      <p class="einstellnote">Du darfst die Route jederzeit ändern — jede Länge merkt sich ihren eigenen Stand.</p>
+    </div>
+  </section>
+
+  <div class="fussnote" id="fussnote">„Das Meer kennt keine Eile.</div>
+</section>
+
+<!-- ==================== ANSICHT: DAS GITTER ==================== -->
+<section id="ansicht-gitter" hidden>
+  <div class="kopfleiste">
+    <button class="zurueck" id="zurueck">← Zurück zum Weg</button>
+  </div>
+
+  <div class="raetselkopf">
+    <h1 id="r-titel">—</h1>
+    <p id="r-einleitung"></p>
+  </div>
+
+  <div class="gitterhuelle" id="gitterfeld"></div>
+  <p class="gitternote">Tippen setzt der Reihe nach: frei → ausgeschlossen → gesetzt. Das Gitter lässt sich seitlich schieben.</p>
+
+  <div class="werkzeuge">
+    <label class="schalter">
+      <input type="checkbox" id="auto-schalter">
+      Zeile und Spalte automatisch streichen
+    </label>
+  </div>
+
+  <div class="abschnitt">
+    <div class="titelzeile"><h2>Was man weiß</h2><span class="linie"></span></div>
+    <ul class="hinweise" id="hinweisliste"></ul>
+  </div>
+
+  <div class="meldung" id="meldung" hidden></div>
+
+  <div class="handlung">
+    <button class="knopf" id="btn-pruefen">Prüfen</button>
+    <div class="nebenaktionen">
+      <button class="knopf-still" id="btn-leeren">Gitter leeren</button>
+      <button class="knopf-still" id="btn-aufloesung">Auflösung zeigen</button>
+    </div>
+  </div>
+
+  <div class="abschnitt" id="aufloesung" hidden></div>
+
+  <p class="fussleiste">Der Stand bleibt erhalten, auch wenn du weggehst.</p>
+</section>
+
+<!-- ==================== ANSICHT: WAHRHEITSRÄTSEL ==================== -->
+<section id="ansicht-saetze" hidden>
+  <div class="kopfleiste"><button class="zurueck" id="w-zurueck">← Zurück zum Weg</button></div>
+
+  <div class="raetselkopf">
+    <h1 id="w-titel">—</h1>
+    <p id="w-einleitung"></p>
+    <p class="w-frage" id="w-frage"></p>
+  </div>
+
+  <ul class="leute" id="w-leute"></ul>
+  <p class="gitternote">Antippen wechselt: offen → sagt die Wahrheit → flunkert.</p>
+
+  <div class="meldung" id="w-meldung" hidden></div>
+
+  <div class="handlung">
+    <button class="knopf" id="w-pruefen">Prüfen</button>
+    <div class="nebenaktionen">
+      <button class="knopf-still" id="w-leeren">Zurücksetzen</button>
+      <button class="knopf-still" id="w-aufgeben">Auflösung zeigen</button>
+    </div>
+  </div>
+
+  <div class="abschnitt" id="w-aufloesung" hidden></div>
+  <p class="fussleiste">Der Stand bleibt erhalten, auch wenn du weggehst.</p>
+</section>
+
+<!-- ==================== ANSICHT: WORT DES TAGES ==================== -->
+<section id="ansicht-wort" hidden>
+  <div class="kopfleiste"><button class="zurueck" id="wort-zurueck">← Zurück zum Weg</button></div>
+  <div class="raetselkopf">
+    <h1>Fünf Buchstaben</h1>
+    <p>Sechs Versuche, mehr braucht es heute nicht. Umlaute zählen als eigene Buchstaben.</p>
+  </div>
+  <div id="wortgitter" class="wortgitter"></div>
+  <div class="meldung" id="wort-meldung" hidden></div>
+  <div id="worttastatur" class="worttastatur"></div>
+  <p class="fussleiste">Der Stand bleibt erhalten, auch wenn du weggehst.</p>
+</section>
+
+<!-- ==================== ANSICHT: STELLUNG DES TAGES ==================== -->
+<section id="ansicht-schach" hidden>
+  <div class="kopfleiste"><button class="zurueck" id="s-zurueck">← Zurück zum Weg</button></div>
+  <div class="raetselkopf">
+    <h1 id="s-titel">—</h1>
+    <p id="s-einleitung"></p>
+    <p class="w-frage" id="s-frage"></p>
+  </div>
+
+  <div id="brettfeld" class="brett"></div>
+  <p class="gitternote">Erst die eigene Figur antippen, dann das Zielfeld.</p>
+
+  <div class="meldung" id="s-meldung" hidden></div>
+
+  <div class="handlung">
+    <button class="knopf" id="s-neu">Von vorn</button>
+    <div class="nebenaktionen">
+      <button class="knopf-still" id="s-aufgeben">Lösung zeigen</button>
+    </div>
+  </div>
+
+  <p class="fussleiste">Der Stand bleibt erhalten, auch wenn du weggehst.</p>
+</section>
+
+<!-- ==================== ANSICHT: DENKSPORTAUFGABE ==================== -->
+<section id="ansicht-aufgabe" hidden>
+  <div class="kopfleiste"><button class="zurueck" id="a-zurueck">← Zurück zum Weg</button></div>
+
+  <div class="raetselkopf">
+    <h1 id="a-titel">—</h1>
+    <p id="a-text"></p>
+  </div>
+
+  <ol class="aussagen" id="a-aussagen" hidden></ol>
+
+  <p class="w-frage" style="padding:0 20px" id="a-frage"></p>
+
+  <div class="antwortfeld" id="a-antwort"></div>
+
+  <div class="meldung" id="a-meldung" hidden></div>
+
+  <div class="handlung">
+    <button class="knopf" id="a-pruefen">Prüfen</button>
+    <div class="nebenaktionen">
+      <button class="knopf-still" id="a-leeren">Zurücksetzen</button>
+      <button class="knopf-still" id="a-aufgeben">Lösungsweg zeigen</button>
+    </div>
+  </div>
+
+  <div class="abschnitt" id="a-weg" hidden></div>
+  <p class="fussleiste">Der Stand bleibt erhalten, auch wenn du weggehst.</p>
+</section>
+
+</div>
+
+<script src="js/loeser.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/wahrheit.js"></script>
+<script src="js/denksport.js"></script>
+<script src="js/wort.js"></script>
+<script src="js/schach.js"></script>
+<script src="js/logik.js"></script>
+<script src="js/saetze.js"></script>
+<script src="js/aufgabe.js"></script>
+<script src="js/wortfeld.js"></script>
+<script src="js/brett.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
