@@ -1,7 +1,7 @@
 /* DIE STRANDRÄTSEL · sw.js — Offline-Betrieb
    Bei jeder Änderung an den Dateien die Version hochzählen,
    sonst behält das iPhone die alte Fassung. */
-const VERSION = "strandraetsel-v0.10.1";
+const VERSION = "strandraetsel-v0.10.2";
 
 const DATEIEN = [
   "./", "./index.html", "./manifest.webmanifest", "./woerter.json", "./stellungen.json",

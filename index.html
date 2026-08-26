@@ -313,23 +313,43 @@ li.person.flunkert .p-urteil{color:var(--abend)}
 <body>
 <div id="fehlerbalken" hidden></div>
 <script>
-/* Frühwarnung: fehlende Skripte oder Laufzeitfehler sichtbar machen,
+/* Frühwarnung: fehlende oder fehlerhafte Skripte sichtbar machen,
    statt die Seite stumm tot liegen zu lassen. */
+window.__ladefehler = [];
 window.addEventListener("error", function (e) {
+  var datei = e.filename ? e.filename.split("/").pop() : "";
+  var text = e.message || "Skript konnte nicht geladen werden";
+  window.__ladefehler.push(datei ? datei + ": " + text : text);
+  zeigeBalken();
+}, true);
+
+function zeigeBalken() {
   var b = document.getElementById("fehlerbalken");
   if (!b) return;
-  b.textContent = "Fehler: " + (e.message || "Skript konnte nicht geladen werden") +
-                  (e.filename ? "  (" + e.filename.split("/").pop() + ")" : "");
-  b.hidden = false;
-}, true);
-window.addEventListener("load", function () {
-  if (typeof window.App === "undefined") {
-    var b = document.getElementById("fehlerbalken");
-    b.textContent = "Die Skripte aus js/ wurden nicht geladen. " +
-      "Diese Datei braucht den ganzen Ordner — oder nimm die Einzeldatei-Fassung.";
-    b.hidden = false;
+  var teile = [];
+
+  var module = {
+    "loeser.js": "Loeser", "generator.js": "Generator", "wahrheit.js": "Wahrheit",
+    "denksport.js": "Denksport", "wort.js": "Wort", "schach.js": "Schach",
+    "logik.js": "Logik", "saetze.js": "Saetze", "aufgabe.js": "Aufgabe",
+    "wortfeld.js": "Wortfeld", "brett.js": "Brett", "app.js": "App"
+  };
+  var fehlen = [];
+  for (var datei in module) if (typeof window[module[datei]] === "undefined") fehlen.push("js/" + datei);
+
+  if (fehlen.length) {
+    teile.push("Diese Dateien fehlen oder heißen anders: " + fehlen.join(", "));
   }
-});
+  if (window.__ladefehler.length) {
+    teile.push(window.__ladefehler.join(" · "));
+  }
+  if (!teile.length) return;
+
+  b.textContent = teile.join(" — ");
+  b.hidden = false;
+}
+
+window.addEventListener("load", function () { setTimeout(zeigeBalken, 0); });
 </script>
 <div class="huelle">
 
